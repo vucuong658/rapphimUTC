@@ -1,0 +1,120 @@
+Folder PATH listing for volume New Volume
+Volume serial number is 4080-3138
+D:\TEST2006\JAVA\AAAA\BE\BTL_JAVA\SRC\MAIN\JAVA
+└───com
+    └───example
+        └───demo
+            │   CinemaApplication.java
+            │   
+            ├───component
+            │       DataSeeder.java
+            │       
+            ├───controller
+            │       AuthController.java
+            │       GheController.java
+            │       HomeController.java
+            │       LoaiGheController.java
+            │       LoaiPhongController.java
+            │       PhimController.java
+            │       PhongChieuController.java
+            │       RapController.java
+            │       SuatChieuController.java
+            │       ThanhPhoController.java
+            │       TheLoaiController.java
+            │       
+            ├───dto
+            │   ├───request
+            │   │   │   CreateThanhPhoRequest.java
+            │   │   │   LoginRequest.java
+            │   │   │   UpdateThanhPhoRequest.java
+            │   │   │   
+            │   │   ├───Ghe
+            │   │   │       CreateGheRequest.java
+            │   │   │       UpdateGheRequest.java
+            │   │   │       
+            │   │   ├───LoaiGhe
+            │   │   │       CreateLoaiGheRequest.java
+            │   │   │       UpdateLoaiGheRequest.java
+            │   │   │       
+            │   │   ├───LoaiPhong
+            │   │   │       CreateLoaiPhongRequest.java
+            │   │   │       UpdateLoaiPhongRequest.java
+            │   │   │       
+            │   │   ├───Phim
+            │   │   │       CreatePhimRequest.java
+            │   │   │       UpdatePhimRequest.java
+            │   │   │       
+            │   │   ├───PhongChieu
+            │   │   │       CreatePhongChieuRequest.java
+            │   │   │       UpdatePhongChieuRequest.java
+            │   │   │       
+            │   │   ├───Rap
+            │   │   │       CreateRapRequest.java
+            │   │   │       UpdateRapRequest.java
+            │   │   │       
+            │   │   ├───SuatChieu
+            │   │   │       CreateSuatChieuRequest.java
+            │   │   │       UpdateSuatChieuRequest.java
+            │   │   │       
+            │   │   ├───ThanhPho
+            │   │   │       CreateThanhPhoRequest.java
+            │   │   │       UpdateThanhPhoRequest.java
+            │   │   │       
+            │   │   └───TheLoai
+            │   │           CreateTheLoaiRequest.java
+            │   │           UpdateTheLoaiRequest.java
+            │   │           
+            │   └───response
+            │           GheResponse.java
+            │           LoaiGheResponse.java
+            │           LoaiPhongResponse.java
+            │           PhimResponse.java
+            │           PhongChieuResponse.java
+            │           RapResponse.java
+            │           SuatChieuResponse.java
+            │           ThanhPhoResponse.java
+            │           TheLoaiResponse.java
+            │           
+            ├───entity
+            │       Ghe.java
+            │       LoaiGhe.java
+            │       LoaiPhong.java
+            │       NguoiDung.java
+            │       Phim.java
+            │       PhongChieu.java
+            │       Rap.java
+            │       SuatChieu.java
+            │       test.java
+            │       ThanhPho.java
+            │       TheLoai.java
+            │       Ve.java
+            │       
+            ├───repository
+            │       GheRepository.java
+            │       LoaiGheRepository.java
+            │       LoaiPhongRepository.java
+            │       NguoiDungRepository.java
+            │       PhimRepository.java
+            │       PhongChieuRepository.java
+            │       RapRepository.java
+            │       SuatChieuRepository.java
+            │       ThanhPhoRepository.java
+            │       TheLoaiRepository.java
+            │       
+            ├───security
+            │       CustomUserDetailsService.java
+            │       JwtAuthenticationFilter.java
+            │       JwtTokenProvider.java
+            │       SecurityConfig.java
+            │       
+            └───service
+                    GheService.java
+                    LoaiGheService.java
+                    LoaiPhongService.java
+                    PhimService.java
+                    PhongChieuService.java
+                    RapService.java
+                    SuatChieuService.java
+                    ThanhPhoService.java
+                    TheLoaiService.java
+                    

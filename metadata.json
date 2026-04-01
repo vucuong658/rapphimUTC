@@ -1,0 +1,5 @@
+{
+  "name": "UTCCINEMA - Movie Booking System",
+  "description": "A premium movie booking application with user and admin dashboards, seat selection, and e-ticket generation.",
+  "requestFramePermissions": []
+}
