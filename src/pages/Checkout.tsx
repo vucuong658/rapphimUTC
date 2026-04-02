@@ -6,7 +6,7 @@ const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedSeats, totalAmount, showtime, movie } = location.state || {};
-  
+
   const [paymentMethod, setPaymentMethod] = useState('momo');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -48,8 +48,8 @@ const Checkout = () => {
                   onClick={() => setPaymentMethod(option.id)}
                   className={cn(
                     "w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 group",
-                    paymentMethod === option.id 
-                      ? "bg-white/10 border-gold/50 shadow-[0_0_20px_rgba(212,175,55,0.1)]" 
+                    paymentMethod === option.id
+                      ? "bg-white/10 border-gold/50 shadow-[0_0_20px_rgba(212,175,55,0.1)]"
                       : "bg-white/5 border-white/5 hover:border-white/20"
                   )}
                 >
@@ -59,7 +59,7 @@ const Checkout = () => {
                   )}>
                     {paymentMethod === option.id && <div className="w-2 h-2 bg-black rounded-full" />}
                   </div>
-                  
+
                   <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0", option.color)}>
                     <option.icon className="text-white w-6 h-6" />
                   </div>
@@ -93,7 +93,7 @@ const Checkout = () => {
       <div className="w-full lg:w-96">
         <div className="glass-card p-8 sticky top-24 border-gold/20">
           <h2 className="text-[10px] uppercase tracking-widest text-white/40 mb-6 font-bold">BOOKING SUMMARY</h2>
-          
+
           <div className="flex gap-4 mb-8">
             <div className="w-24 aspect-[2/3] rounded-lg overflow-hidden flex-shrink-0">
               <img src={movie.posterUrl} alt={movie.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -136,9 +136,9 @@ const Checkout = () => {
           <div className="mb-8">
             <label className="text-[10px] uppercase tracking-widest text-white/40 mb-2 block font-bold">DISCOUNT CODE</label>
             <div className="flex gap-2">
-              <input 
-                type="text" 
-                placeholder="Enter code" 
+              <input
+                type="text"
+                placeholder="Enter code"
                 className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-gold/50"
               />
               <button className="btn-outline text-xs px-4">APPLY</button>
@@ -150,7 +150,7 @@ const Checkout = () => {
             <span className="text-2xl font-bold text-gold">{totalAmount.toFixed(3)}đ</span>
           </div>
 
-          <button 
+          <button
             disabled={isProcessing}
             onClick={handleCompletePurchase}
             className="w-full btn-gold py-4 flex items-center justify-center gap-2 relative overflow-hidden"

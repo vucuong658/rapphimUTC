@@ -15,12 +15,15 @@ const Login = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+
+        },
         body: JSON.stringify({ username, password })
       });
-      
+
       const data = await res.json();
-      
+
       if (res.ok) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.role);
@@ -40,9 +43,9 @@ const Login = () => {
       {/* Left: Branding */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden bg-[#050505]">
         <div className="absolute inset-0">
-          <img 
-            src="https://picsum.photos/seed/cinema-bg/1920/1080" 
-            alt="Cinema" 
+          <img
+            src="https://picsum.photos/seed/cinema-bg/1920/1080"
+            alt="Cinema"
             className="w-full h-full object-cover opacity-30"
             referrerPolicy="no-referrer"
           />
@@ -75,11 +78,11 @@ const Login = () => {
               <label className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2 block">Email or Phone Number</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username" 
+                  placeholder="Enter your username"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all"
                 />
               </div>
@@ -92,14 +95,14 @@ const Login = () => {
               </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                <input 
-                  type={showPassword ? "text" : "password"} 
+                <input
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password" 
+                  placeholder="Enter your password"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-sm focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all"
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
@@ -121,8 +124,8 @@ const Login = () => {
           </form>
 
           {/* Test API Connection */}
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={async () => {
               try {
                 // Thử gửi request OPTIONS hoặc GET đến backend để kiểm tra kết nối & CORS

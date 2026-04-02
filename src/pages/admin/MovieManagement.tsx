@@ -24,9 +24,9 @@ const MovieManagement = () => {
         <div className="flex items-center gap-4 flex-1">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-            <input 
-              type="text" 
-              placeholder="Search movies..." 
+            <input
+              type="text"
+              placeholder="Search movies..."
               className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-gold/50"
             />
           </div>
@@ -45,13 +45,13 @@ const MovieManagement = () => {
         </div>
 
         <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
-          <button 
+          <button
             onClick={() => setViewMode('grid')}
             className={cn("p-2 rounded-md transition-all", viewMode === 'grid' ? "bg-gold text-black shadow-lg" : "text-white/40 hover:text-white")}
           >
             <LayoutGrid className="w-4 h-4" />
           </button>
-          <button 
+          <button
             onClick={() => setViewMode('list')}
             className={cn("p-2 rounded-md transition-all", viewMode === 'list' ? "bg-gold text-black shadow-lg" : "text-white/40 hover:text-white")}
           >
@@ -64,7 +64,7 @@ const MovieManagement = () => {
         {/* Movie Grid/List */}
         <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {MOVIES.map((movie) => (
-            <div 
+            <div
               key={movie.id}
               onClick={() => setSelectedMovie(movie.id)}
               className={cn(
@@ -79,8 +79,8 @@ const MovieManagement = () => {
                   <div className={cn(
                     "px-3 py-1 rounded-full text-[10px] font-bold border",
                     movie.status === 'Now Showing' ? "bg-green-500/20 text-green-500 border-green-500/30" :
-                    movie.status === 'Coming Soon' ? "bg-yellow-500/20 text-yellow-500 border-yellow-500/30" :
-                    "bg-red-500/20 text-red-500 border-red-500/30"
+                      movie.status === 'Coming Soon' ? "bg-yellow-500/20 text-yellow-500 border-yellow-500/30" :
+                        "bg-red-500/20 text-red-500 border-red-500/30"
                   )}>
                     {movie.status}
                   </div>
@@ -133,7 +133,7 @@ const MovieManagement = () => {
                   </div>
                 </div>
               ))}
-              
+
               <button className="w-full border-2 border-dashed border-white/10 rounded-xl py-4 text-xs text-white/40 hover:border-gold/30 hover:text-gold transition-all flex items-center justify-center gap-2">
                 <Plus className="w-4 h-4" />
                 Add New Showtime

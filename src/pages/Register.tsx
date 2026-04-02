@@ -1,22 +1,57 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Film, User, Mail, Phone, Lock, Eye, EyeOff } from 'lucide-react';
+import { Film, User, Lock, Eye, EyeOff } from 'lucide-react';
+import { API_BASE_URL } from '../constants';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/');
+    setError('');
+
+    if (password !== confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp!');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert('Đăng ký thành công! Vui lòng đăng nhập.');
+        navigate('/login');
+      } else {
+        setError(data.message || 'Tên đăng nhập đã tồn tại hoặc có lỗi xảy ra.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Không thể kết nối đến máy chủ Backend.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 lg:p-24 bg-[#0A0A0A] relative overflow-hidden">
       <div className="absolute inset-0 z-0">
-        <img 
-          src="https://picsum.photos/seed/cinema-bg/1920/1080" 
-          alt="Cinema" 
+        <img
+          src="https://picsum.photos/seed/cinema-bg/1920/1080"
+          alt="Cinema"
           className="w-full h-full object-cover opacity-10"
           referrerPolicy="no-referrer"
         />
@@ -38,37 +73,16 @@ const Register = () => {
         <div className="glass-card p-10 border-gold/20 shadow-[0_0_50px_rgba(212,175,55,0.1)]">
           <form onSubmit={handleRegister} className="space-y-6">
             <div>
-              <label className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2 block">Full Name</label>
+              <label className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2 block">Username</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                <input 
-                  type="text" 
-                  placeholder="Enter your full name" 
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2 block">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                <input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2 block">Phone Number</label>
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                <input 
-                  type="tel" 
-                  placeholder="Enter your phone number" 
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all"
+                  required
                 />
               </div>
             </div>
@@ -77,12 +91,15 @@ const Register = () => {
               <label className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2 block">Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="Enter your password" 
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-sm focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all"
+                  required
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
@@ -96,28 +113,41 @@ const Register = () => {
               <label className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2 block">Confirm Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="Confirm your password" 
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-sm focus:outline-none focus:border-gold/50 focus:bg-white/10 transition-all"
+                  required
                 />
               </div>
             </div>
 
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-sm px-4 py-3 rounded-lg text-center">
+                {error}
+              </div>
+            )}
+
             <div className="flex items-start gap-3">
-              <input type="checkbox" className="mt-1 accent-gold" />
+              <input type="checkbox" className="mt-1 accent-gold" required />
               <p className="text-xs text-white/40 leading-relaxed">
                 I agree to the <Link to="/terms" className="text-gold hover:underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-gold hover:underline">Privacy Policy</Link>.
               </p>
             </div>
 
-            <button type="submit" className="w-full btn-gold py-4 text-lg shadow-2xl shadow-gold/10">
-              Create Account
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-4 text-lg shadow-2xl transition-all ${loading ? 'bg-gold/50 text-black/50 cursor-not-allowed' : 'btn-gold shadow-gold/10'}`}
+            >
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
           <div className="mt-8 text-center text-sm text-white/40">
-            Already have an account? <Link to="/login" id="login-link" className="text-gold font-bold hover:underline">Login</Link>
+            Already have an account? <Link to="/login" className="text-gold font-bold hover:underline">Login</Link>
           </div>
         </div>
       </div>

@@ -1,16 +1,17 @@
+
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { 
-  Film, 
-  User as UserIcon, 
-  LayoutDashboard, 
-  Ticket, 
-  CreditCard, 
-  History, 
-  Settings as SettingsIcon, 
-  LogOut, 
-  Search, 
-  Bell, 
+import {
+  Film,
+  User as UserIcon,
+  LayoutDashboard,
+  Ticket,
+  CreditCard,
+  History,
+  Settings as SettingsIcon,
+  LogOut,
+  Search,
+  Bell,
   MessageSquare,
   ChevronRight,
   Menu,
@@ -78,9 +79,9 @@ const Navbar = () => {
       <div className="flex items-center gap-6">
         <div className="relative hidden lg:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-          <input 
-            type="text" 
-            placeholder="Search movies..." 
+          <input
+            type="text"
+            placeholder="Search movies..."
             className="bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-gold/50 w-64"
           />
         </div>
@@ -96,7 +97,7 @@ const Navbar = () => {
 
 const AdminSidebar = () => {
   const location = useLocation();
-  
+
   const menuItems = [
     { icon: LayoutDashboard, label: 'Analytics', path: '/admin' },
     { icon: UserIcon, label: 'User Management', path: '/admin/users' },
@@ -115,13 +116,13 @@ const AdminSidebar = () => {
 
       <div className="flex-1 space-y-2">
         {menuItems.map((item) => (
-          <Link 
+          <Link
             key={item.path}
             to={item.path}
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
-              location.pathname === item.path 
-                ? "bg-gold text-black font-semibold" 
+              location.pathname === item.path
+                ? "bg-gold text-black font-semibold"
                 : "text-white/60 hover:bg-white/5 hover:text-white"
             )}
           >
@@ -198,7 +199,7 @@ export default function App() {
             } />
           </Routes>
         </main>
-        
+
         {/* Support Chat Widget */}
         <ChatWidget />
       </div>
@@ -215,7 +216,7 @@ const ChatWidget = () => {
     <div className="fixed bottom-6 right-6 z-[60]">
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
@@ -248,9 +249,9 @@ const ChatWidget = () => {
               </div>
             </div>
             <div className="p-4 border-t border-white/10 flex gap-2">
-              <input 
-                type="text" 
-                placeholder="Type your message..." 
+              <input
+                type="text"
+                placeholder="Type your message..."
                 className="flex-1 bg-white/5 rounded-lg px-3 py-2 text-sm focus:outline-none"
               />
               <button className="bg-gold p-2 rounded-lg text-black">
@@ -260,7 +261,7 @@ const ChatWidget = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-14 h-14 bg-gold rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
       >

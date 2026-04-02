@@ -11,7 +11,7 @@ const ETicket = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-6 flex flex-col items-center justify-center bg-gradient-to-b from-[#0A0A0A] to-black">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-4xl w-full"
@@ -40,7 +40,7 @@ const ETicket = () => {
                 <label className="text-[10px] uppercase tracking-widest text-gold font-bold mb-2 block">MOVIE:</label>
                 <div className="text-2xl font-serif italic font-bold">{movie.title}</div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-8">
                 <div>
                   <label className="text-[10px] uppercase tracking-widest text-gold font-bold mb-1 block">DATE:</label>
@@ -76,7 +76,7 @@ const ETicket = () => {
                 </div>
               </div>
               <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Scan at entrance</p>
-              
+
               <div className="mt-8 w-full space-y-3 border-t border-white/5 pt-8">
                 <div className="flex justify-between text-sm">
                   <span className="text-white/40">Booking:</span>
