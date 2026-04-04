@@ -802,10 +802,23 @@ function EmptyBlock({ title, message }: { title: string; message: string }) {
 }
 
 function InlineError({ message }: { message: string }) {
+  const normalizedMessage = message.includes('Failed to fetch')
+    ? 'Khong the ket noi den may chu Backend. Hay kiem tra backend localhost:8080 roi thu lai.'
+    : message;
+
   return (
-    <div className="flex items-start gap-3 rounded-[1.25rem] border border-red-500/20 bg-red-500/8 px-4 py-4 text-sm text-red-200">
-      <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
-      <span>{message}</span>
+    <div className="rounded-[1.25rem] border border-red-500/20 bg-red-500/8 px-4 py-4 text-sm text-red-200">
+      <div className="flex items-start gap-3">
+        <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
+        <span>{normalizedMessage}</span>
+      </div>
+      <button
+        type="button"
+        onClick={() => window.location.reload()}
+        className="mt-4 rounded-full border border-red-400/30 bg-red-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-red-100 transition hover:bg-red-500/15"
+      >
+        Thu lai
+      </button>
     </div>
   );
 }
@@ -890,6 +903,9 @@ async function apiGetArray<T>(path: string): Promise<T[]> {
     const data = await response.json();
     return Array.isArray(data) ? data : data ? [data] : [];
   } catch (error) {
+    if (error instanceof Error && error.message.includes('Failed to fetch')) {
+      throw new Error('Khong the ket noi den may chu Backend');
+    }
     throw error;
   }
 }
