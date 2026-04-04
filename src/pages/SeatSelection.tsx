@@ -1,15 +1,33 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, Monitor, Info } from 'lucide-react';
 
 // Dữ liệu giả lập cho ngày và giờ chiếu (Sẽ thay bằng API sau)
 const DATES = ['Thứ 5, 03/04', 'Thứ 6, 04/04', 'Thứ 7, 05/04'];
 const TIMES = ['09:00', '12:30', '15:00', '19:45', '22:15'];
 
+type BookingState = {
+  movie?: {
+    id?: string;
+  };
+  showtime?: {
+    dateLabel?: string;
+    timeLabel?: string;
+  };
+};
+
 const SeatSelection = () => {
   const { id } = useParams(); // Lấy ID phim từ URL
-  const [selectedDate, setSelectedDate] = useState(DATES[0]);
-  const [selectedTime, setSelectedTime] = useState(TIMES[3]);
+  const location = useLocation();
+  const bookingState = (location.state || {}) as BookingState;
+  const movieId = bookingState.movie?.id;
+  const incomingDate = bookingState.showtime?.dateLabel;
+  const incomingTime = bookingState.showtime?.timeLabel;
+  const availableDates = incomingDate && !DATES.includes(incomingDate) ? [incomingDate, ...DATES] : DATES;
+  const availableTimes = incomingTime && !TIMES.includes(incomingTime) ? [incomingTime, ...TIMES] : TIMES;
+
+  const [selectedDate, setSelectedDate] = useState(incomingDate || DATES[0]);
+  const [selectedTime, setSelectedTime] = useState(incomingTime || TIMES[3]);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
 
   // Giả lập tạo sơ đồ ghế (8 hàng, mỗi hàng 10 ghế)
@@ -53,7 +71,7 @@ const SeatSelection = () => {
 
         {/* Thanh điều hướng */}
         <div className="flex items-center justify-between mb-8">
-          <Link to={`/movie/${id}`} className="flex items-center gap-2 text-white/70 hover:text-gold transition-colors">
+          <Link to={movieId ? `/movie/${movieId}` : '/'} className="flex items-center gap-2 text-white/70 hover:text-gold transition-colors">
             <ArrowLeft className="w-5 h-5" /> Quay lại thông tin phim
           </Link>
           <h1 className="text-2xl font-bold font-serif text-gold">CHỌN VỊ TRÍ GHẾ</h1>
@@ -68,7 +86,7 @@ const SeatSelection = () => {
             <div className="mb-10">
               <h3 className="text-sm text-white/50 mb-3 uppercase tracking-wider">Ngày chiếu</h3>
               <div className="flex gap-3 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-                {DATES.map(date => (
+                {availableDates.map(date => (
                   <button
                     key={date}
                     onClick={() => setSelectedDate(date)}
@@ -81,7 +99,7 @@ const SeatSelection = () => {
 
               <h3 className="text-sm text-white/50 mb-3 uppercase tracking-wider">Suất chiếu</h3>
               <div className="flex gap-3 flex-wrap">
-                {TIMES.map(time => (
+                {availableTimes.map(time => (
                   <button
                     key={time}
                     onClick={() => setSelectedTime(time)}

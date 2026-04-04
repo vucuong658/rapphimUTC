@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
   Film,
@@ -14,22 +15,22 @@ import {
   MessageSquare,
   ChevronRight,
   Menu,
-  X,
-  MapPin // 👉 Thêm MapPin icon ở đây
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 // Pages
-import CinemaManagement from './pages/admin/CinemaManagement';
 import ShowtimeManagement from './pages/admin/ShowtimeManagement';
+import BookingPage from './pages/dat-ve';
 import Home from './pages/Home';
-import MovieDetail from './pages/MovieDetail';
-import SeatSelection from './pages/SeatSelection';
-import Checkout from './pages/Checkout';
+import InvoicePage from './pages/HoaDonStyledPage';
+import MovieDetail from './pages/chi-tiet-phim';
+import SeatSelection from './pages/SeatSelectionPage';
+import Checkout from './pages/CheckoutStyledPage';
 import ETicket from './pages/ETicket';
-import Login from './pages/Login';
+import Login from './pages/LoginPage';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Cinemas from './pages/Cinemas';
@@ -41,15 +42,16 @@ import MovieManagement from './pages/admin/MovieManagement';
 import PricingAndSeating from './pages/admin/Pricing';
 import FinancialLedger from './pages/admin/FinancialLedger';
 import Settings from './pages/admin/Settings';
-
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isAdmin = location.pathname.startsWith('/admin');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem('token')));
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -57,7 +59,26 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    setIsLoggedIn(Boolean(localStorage.getItem('token')));
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleStorage = () => setIsLoggedIn(Boolean(localStorage.getItem('token')));
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   if (isAdmin) return null;
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('maKhachHang');
+    sessionStorage.removeItem('utc_redirect');
+    setIsLoggedIn(false);
+    navigate('/');
+  };
 
   return (
     <nav className={cn(
@@ -73,6 +94,7 @@ const Navbar = () => {
 
       <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/70">
         <Link to="/" className="hover:text-gold transition-colors">Movies</Link>
+        <Link to="/booking" className="hover:text-gold transition-colors">Booking</Link>
         <Link to="/cinemas" className="hover:text-gold transition-colors">Cinemas</Link>
         <Link to="/experiences" className="hover:text-gold transition-colors">Experiences</Link>
         <Link to="/promotions" className="hover:text-gold transition-colors">Promotions</Link>
@@ -87,7 +109,13 @@ const Navbar = () => {
             className="bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-gold/50 w-64"
           />
         </div>
-        <Link to="/login" className="btn-gold text-xs px-4 py-2">Login / Sign Up</Link>
+        {isLoggedIn ? (
+          <button type="button" onClick={handleLogout} className="btn-gold text-xs px-4 py-2">
+            Dang xuat
+          </button>
+        ) : (
+          <Link to="/login" className="btn-gold text-xs px-4 py-2">Login / Sign Up</Link>
+        )}
         <Link to="/profile" className="flex items-center gap-2 text-white/70 hover:text-white">
           <UserIcon className="w-5 h-5" />
           <span className="hidden sm:inline text-sm">My Profile</span>
@@ -105,14 +133,12 @@ const AdminSidebar = () => {
     { icon: UserIcon, label: 'User Management', path: '/admin/users' },
     { icon: Film, label: 'Movie & Ticket Mgmt', path: '/admin/movies' },
     { icon: Ticket, label: 'Showtimes', path: '/admin/showtimes' },
-    // 👉 Thêm mục Quản lý Rạp vào Menu
-    { icon: MapPin, label: 'Cinemas & Rooms', path: '/admin/cinemas' },
     { icon: CreditCard, label: 'Cash Flow', path: '/admin/finance' },
     { icon: SettingsIcon, label: 'Settings', path: '/admin/settings' },
   ];
 
   return (
-    <div className="w-64 h-screen bg-[#0F0F0F] border-r border-white/5 flex flex-col p-6 fixed left-0 top-0 z-50">
+    <div className="w-64 h-screen bg-[#0F0F0F] border-r border-white/5 flex flex-col p-6 fixed left-0 top-0">
       <div className="flex items-center gap-2 mb-10">
         <Film className="text-gold w-8 h-8" />
         <span className="text-xl font-bold text-white">UTCCINEMA <span className="text-xs text-white/40 font-normal">Admin</span></span>
@@ -154,8 +180,10 @@ export default function App() {
             {/* User Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/movie/:id" element={<MovieDetail />} />
+            <Route path="/booking" element={<BookingPage />} />
             <Route path="/booking/:showtimeId" element={<SeatSelection />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/invoice" element={<InvoicePage />} />
             <Route path="/ticket/:id" element={<ETicket />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -187,13 +215,6 @@ export default function App() {
               <div className="pl-64 min-h-screen bg-[#050505]">
                 <AdminSidebar />
                 <ShowtimeManagement />
-              </div>
-            } />
-            {/* 👉 Thêm Route cho Quản Lý Rạp */}
-            <Route path="/admin/cinemas" element={
-              <div className="pl-64 min-h-screen bg-[#050505]">
-                <AdminSidebar />
-                <CinemaManagement />
               </div>
             } />
             <Route path="/admin/pricing" element={
@@ -287,3 +308,4 @@ const ChatWidget = () => {
     </div>
   );
 };
+

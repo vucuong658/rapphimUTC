@@ -4,11 +4,10 @@ import { API_BASE_URL } from '../../constants';
 
 const MovieManagement = () => {
   const [movies, setMovies] = useState([]);
-  const [theLoais, setTheLoais] = useState([]); // 👉 State mới chứa danh sách Thể Loại
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // 👉 Khởi tạo state đã có thêm mảng maTheLoais rỗng
+  // Khởi tạo state dựa trên các cột trong Database của bạn
   const initialFormState = {
     maPhim: '',
     tenPhim: '',
@@ -17,42 +16,27 @@ const MovieManagement = () => {
     ngonNgu: 'Tiếng Việt',
     doTuoiPhuHop: 13,
     moTa: '',
-    poster: '',
-    maTheLoais: [] // Mảng chứa các mã thể loại được tick
+    poster: ''
   };
-  const [formData, setFormData] = useState<{ [key: string]: any }>(initialFormState);
+  const [formData, setFormData] = useState(initialFormState);
 
-  // Tải danh sách phim VÀ danh sách Thể loại
-  const loadData = async () => {
+  // Tải danh sách phim từ Backend
+  const loadMovies = async () => {
     try {
-      // Lấy danh sách phim
-      const resMovies = await fetch(`${API_BASE_URL}/phim`);
-      if (resMovies.ok) setMovies(await resMovies.json());
-
-      // Lấy danh sách thể loại từ API của bạn
-      const resTheLoais = await fetch(`${API_BASE_URL}/the-loai`);
-      if (resTheLoais.ok) setTheLoais(await resTheLoais.json());
+      const res = await fetch(`${API_BASE_URL}/phim`);
+      if (res.ok) setMovies(await res.json());
     } catch (error) {
-      console.error("Lỗi khi tải dữ liệu:", error);
+      console.error("Lỗi khi tải danh sách phim:", error);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadMovies();
   }, []);
 
   // Mở form để Sửa
   const openEditModal = (movie: any) => {
     setIsEditing(true);
-
-    // Trích xuất mảng mã thể loại từ phim (phòng trường hợp BE trả về mảng object)
-    let checkedGenres = [];
-    if (movie.theLoais) {
-      checkedGenres = movie.theLoais.map((tl: any) => tl.maTheLoai || tl);
-    } else if (movie.maTheLoais) {
-      checkedGenres = movie.maTheLoais;
-    }
-
     setFormData({
       maPhim: movie.maPhim,
       tenPhim: movie.tenPhim,
@@ -61,39 +45,16 @@ const MovieManagement = () => {
       ngonNgu: movie.ngonNgu,
       doTuoiPhuHop: movie.doTuoiPhuHop,
       moTa: movie.moTa,
-      poster: movie.poster,
-      maTheLoais: checkedGenres // Nạp lại các thể loại đã tick
+      poster: movie.poster
     });
     setIsModalOpen(true);
   };
 
-  // Hàm xử lý khi ấn tick Checkbox
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const isChecked = e.target.checked;
-
-    setFormData(prev => {
-      if (isChecked) {
-        // Nếu tick vào thì thêm mã đó vào mảng
-        return { ...prev, maTheLoais: [...prev.maTheLoais, value] };
-      } else {
-        // Nếu bỏ tick thì rút mã đó ra khỏi mảng
-        return { ...prev, maTheLoais: prev.maTheLoais.filter((id: string) => id !== value) };
-      }
-    });
-  };
-
-  // Nút Lưu
+  // Nút Lưu (Dùng cho cả Thêm Mới và Sửa)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Kiểm tra xem đã tick ít nhất 1 thể loại chưa
-    if (formData.maTheLoais.length === 0) {
-      alert("Vui lòng chọn ít nhất 1 thể loại cho bộ phim!");
-      return;
-    }
-
     const token = localStorage.getItem('token');
+
     const method = isEditing ? 'PUT' : 'POST';
     const url = isEditing
       ? `${API_BASE_URL}/phim/${formData.maPhim}`
@@ -104,15 +65,15 @@ const MovieManagement = () => {
         method: method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}` // Gắn thẻ Admin để không bị lỗi 403
         },
-        body: JSON.stringify(formData) // 👉 Đã bỏ đoạn ép cứng TL01, gửi formData xịn lên
+        body: JSON.stringify(formData)
       });
 
       if (res.ok) {
         alert(isEditing ? "Cập nhật phim thành công!" : "Thêm phim mới thành công rực rỡ!");
         handleCloseModal();
-        loadData();
+        loadMovies();
       } else {
         const errorData = await res.text();
         alert(`Lỗi từ Backend: ${errorData}`);
@@ -135,7 +96,7 @@ const MovieManagement = () => {
 
       if (res.ok) {
         alert("Đã xóa phim thành công!");
-        loadData();
+        loadMovies();
       } else {
         alert("Lỗi! Không thể xóa phim này (Có thể phim đang có suất chiếu).");
       }
@@ -229,27 +190,6 @@ const MovieManagement = () => {
               </div>
             </div>
 
-            {/* 👉 KHU VỰC CHECKBOX THỂ LOẠI */}
-            <div className="bg-white/5 p-4 rounded-lg border border-white/10">
-              <label className="block text-sm font-bold text-gold mb-3">Thể loại phim (Có thể chọn nhiều)</label>
-              <div className="grid grid-cols-3 gap-3">
-                {theLoais.map((tl: any) => (
-                  <label key={tl.maTheLoai} className="flex items-center space-x-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      value={tl.maTheLoai}
-                      checked={formData.maTheLoais.includes(tl.maTheLoai)}
-                      onChange={handleCheckboxChange}
-                      className="w-4 h-4 rounded border-white/20 bg-black text-gold focus:ring-gold focus:ring-offset-black cursor-pointer"
-                    />
-                    <span className="text-sm text-white/70 group-hover:text-white transition-colors">
-                      {tl.tenTheLoai}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-white/50 mb-1">Ngày khởi chiếu</label>
@@ -279,7 +219,7 @@ const MovieManagement = () => {
 
             <div>
               <label className="block text-sm text-white/50 mb-1">Mô tả phim</label>
-              <textarea rows={3} value={formData.moTa} className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-gold resize-none" onChange={e => setFormData({ ...formData, moTa: e.target.value })}></textarea>
+              <textarea rows={4} value={formData.moTa} className="w-full bg-black border border-white/10 p-3 rounded-lg outline-none focus:border-gold resize-none" onChange={e => setFormData({ ...formData, moTa: e.target.value })}></textarea>
             </div>
 
             <div className="pt-4 flex gap-4 border-t border-white/10 mt-6">
