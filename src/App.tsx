@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
@@ -15,13 +14,15 @@ import {
   MessageSquare,
   ChevronRight,
   Menu,
-  X
+  X,
+  MapPin // 👉 Thêm MapPin icon ở đây
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 // Pages
+import CinemaManagement from './pages/admin/CinemaManagement';
 import ShowtimeManagement from './pages/admin/ShowtimeManagement';
 import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
@@ -40,6 +41,7 @@ import MovieManagement from './pages/admin/MovieManagement';
 import PricingAndSeating from './pages/admin/Pricing';
 import FinancialLedger from './pages/admin/FinancialLedger';
 import Settings from './pages/admin/Settings';
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -103,12 +105,14 @@ const AdminSidebar = () => {
     { icon: UserIcon, label: 'User Management', path: '/admin/users' },
     { icon: Film, label: 'Movie & Ticket Mgmt', path: '/admin/movies' },
     { icon: Ticket, label: 'Showtimes', path: '/admin/showtimes' },
+    // 👉 Thêm mục Quản lý Rạp vào Menu
+    { icon: MapPin, label: 'Cinemas & Rooms', path: '/admin/cinemas' },
     { icon: CreditCard, label: 'Cash Flow', path: '/admin/finance' },
     { icon: SettingsIcon, label: 'Settings', path: '/admin/settings' },
   ];
 
   return (
-    <div className="w-64 h-screen bg-[#0F0F0F] border-r border-white/5 flex flex-col p-6 fixed left-0 top-0">
+    <div className="w-64 h-screen bg-[#0F0F0F] border-r border-white/5 flex flex-col p-6 fixed left-0 top-0 z-50">
       <div className="flex items-center gap-2 mb-10">
         <Film className="text-gold w-8 h-8" />
         <span className="text-xl font-bold text-white">UTCCINEMA <span className="text-xs text-white/40 font-normal">Admin</span></span>
@@ -183,6 +187,13 @@ export default function App() {
               <div className="pl-64 min-h-screen bg-[#050505]">
                 <AdminSidebar />
                 <ShowtimeManagement />
+              </div>
+            } />
+            {/* 👉 Thêm Route cho Quản Lý Rạp */}
+            <Route path="/admin/cinemas" element={
+              <div className="pl-64 min-h-screen bg-[#050505]">
+                <AdminSidebar />
+                <CinemaManagement />
               </div>
             } />
             <Route path="/admin/pricing" element={
@@ -276,4 +287,3 @@ const ChatWidget = () => {
     </div>
   );
 };
-
