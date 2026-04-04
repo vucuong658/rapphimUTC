@@ -22,6 +22,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 // Pages
+import ShowtimeManagement from './pages/admin/ShowtimeManagement';
 import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
 import SeatSelection from './pages/SeatSelection';
@@ -39,7 +40,6 @@ import MovieManagement from './pages/admin/MovieManagement';
 import PricingAndSeating from './pages/admin/Pricing';
 import FinancialLedger from './pages/admin/FinancialLedger';
 import Settings from './pages/admin/Settings';
-
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -102,9 +102,9 @@ const AdminSidebar = () => {
     { icon: LayoutDashboard, label: 'Analytics', path: '/admin' },
     { icon: UserIcon, label: 'User Management', path: '/admin/users' },
     { icon: Film, label: 'Movie & Ticket Mgmt', path: '/admin/movies' },
-    { icon: Ticket, label: 'Pricing & Seating', path: '/admin/pricing' },
+    { icon: Ticket, label: 'Showtimes', path: '/admin/showtimes' },
     { icon: CreditCard, label: 'Cash Flow', path: '/admin/finance' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings' },
+    { icon: SettingsIcon, label: 'Settings', path: '/admin/settings' },
   ];
 
   return (
@@ -177,6 +177,12 @@ export default function App() {
               <div className="pl-64 min-h-screen bg-[#050505]">
                 <AdminSidebar />
                 <MovieManagement />
+              </div>
+            } />
+            <Route path="/admin/showtimes" element={
+              <div className="pl-64 min-h-screen bg-[#050505]">
+                <AdminSidebar />
+                <ShowtimeManagement />
               </div>
             } />
             <Route path="/admin/pricing" element={
