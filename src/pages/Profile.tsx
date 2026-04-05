@@ -6,17 +6,22 @@ import {
   CircleAlert,
   Clock3,
   CreditCard,
+  Film,
+  LayoutDashboard,
   LogOut,
   MapPin,
   ReceiptText,
   RefreshCw,
   Settings,
+  ShieldCheck,
   Ticket,
   User,
+  Users,
   XCircle,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { API_BASE_URL } from '../constants';
+import CenteredNoticeModal from '../components/CenteredNoticeModal';
 
 type ProfileTab = 'Bookings' | 'Settings';
 
@@ -54,10 +59,20 @@ type BookingInvoice = {
   dsVe?: BookingTicket[];
 };
 
-type FlashMessage =
+type NoticeDialog =
   | {
-      type: 'success' | 'error';
+      title: string;
       text: string;
+      buttonLabel?: string;
+    }
+  | null;
+
+type ConfirmDialog =
+  | {
+      invoice: BookingInvoice;
+      title: string;
+      text: string;
+      confirmLabel: string;
     }
   | null;
 
@@ -68,8 +83,58 @@ type StatusConfig = {
   icon: typeof CheckCircle2;
 };
 
-const TABS: ProfileTab[] = ['Bookings', 'Settings'];
+type AdminAction = {
+  label: string;
+  description: string;
+  path: string;
+  icon: typeof LayoutDashboard;
+};
+
 const CURRENCY_FORMATTER = new Intl.NumberFormat('vi-VN');
+const ADMIN_ACTIONS: AdminAction[] = [
+  {
+    label: 'Analytics',
+    description: 'Mo bang dieu khien doanh thu, luot dat va thong ke nhanh.',
+    path: '/admin',
+    icon: LayoutDashboard,
+  },
+  {
+    label: 'User Management',
+    description: 'Quan ly tai khoan, trang thai va thong tin thanh vien.',
+    path: '/admin/users',
+    icon: Users,
+  },
+  {
+    label: 'Movie & Ticket Mgmt',
+    description: 'Them, sua, xoa phim va cap nhat noi dung hien thi.',
+    path: '/admin/movies',
+    icon: Film,
+  },
+  {
+    label: 'Showtimes',
+    description: 'Sap lich chieu, phong chieu va thoi gian cong chieu.',
+    path: '/admin/showtimes',
+    icon: Ticket,
+  },
+  {
+    label: 'Pricing',
+    description: 'Dieu chinh quy tac gia ve, loai ghe va phu thu.',
+    path: '/admin/pricing',
+    icon: CreditCard,
+  },
+  {
+    label: 'Cash Flow',
+    description: 'Theo doi doanh thu, giao dich va so lieu doi soat.',
+    path: '/admin/finance',
+    icon: ReceiptText,
+  },
+  {
+    label: 'Settings',
+    description: 'Cap nhat cai dat he thong va thong tin van hanh.',
+    path: '/admin/settings',
+    icon: Settings,
+  },
+];
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -77,11 +142,14 @@ export default function Profile() {
   const [invoices, setInvoices] = useState<BookingInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [flashMessage, setFlashMessage] = useState<FlashMessage>(null);
+  const [noticeDialog, setNoticeDialog] = useState<NoticeDialog>(null);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog>(null);
   const [cancelingInvoiceId, setCancelingInvoiceId] = useState<string | null>(null);
 
   const token = localStorage.getItem('token') || '';
   const maKhachHang = localStorage.getItem('maKhachHang') || '';
+  const role = (localStorage.getItem('role') || '').toUpperCase();
+  const isAdmin = role === 'ROLE_ADMIN';
   const paidInvoices = invoices.filter((invoice) => invoice.trangThai === 'DA_THANH_TOAN');
   const pendingInvoices = invoices.filter((invoice) => invoice.trangThai === 'CHUA_THANH_TOAN');
   const cancelledInvoices = invoices.filter((invoice) => invoice.trangThai === 'DA_HUY');
@@ -91,14 +159,27 @@ export default function Profile() {
   }, []);
 
   useEffect(() => {
-    if (!token || !maKhachHang) {
+    if (!token) {
+      sessionStorage.setItem('utc_redirect', '/profile');
+      navigate('/login');
+      return;
+    }
+
+    if (isAdmin) {
+      setInvoices([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    if (!maKhachHang) {
       sessionStorage.setItem('utc_redirect', '/profile');
       navigate('/login');
       return;
     }
 
     void loadInvoices(maKhachHang, token);
-  }, [maKhachHang, navigate, token]);
+  }, [isAdmin, maKhachHang, navigate, token]);
 
   async function loadInvoices(customerId: string, authToken: string) {
     setLoading(true);
@@ -131,24 +212,32 @@ export default function Profile() {
     }
 
     if (!canCancelInvoice(invoice)) {
-      setFlashMessage({
-        type: 'error',
+      setNoticeDialog({
+        title: 'Khong the huy hoa don',
         text: 'Hoa don nay khong con du dieu kien de huy.',
       });
       return;
     }
 
     const isPaidInvoice = invoice.trangThai === 'DA_THANH_TOAN';
-    const confirmText = isPaidInvoice
-      ? 'Ban co chac muon huy ve cua hoa don nay?'
-      : 'Ban co chac muon huy giu cho cua hoa don nay?';
+    setConfirmDialog({
+      invoice,
+      title: isPaidInvoice ? 'Xac nhan huy ve' : 'Xac nhan huy giu cho',
+      text: isPaidInvoice
+        ? `Ban sap huy ve cua hoa don ${invoice.maDon}. Sau khi xac nhan, hoa don se chuyen sang trang thai da huy.`
+        : `Ban sap huy giu cho cua hoa don ${invoice.maDon}. Sau khi xac nhan, ghe se duoc mo lai cho nguoi dung khac.`,
+      confirmLabel: isPaidInvoice ? 'Huy ve ngay' : 'Huy giu cho',
+    });
+  }
 
-    if (!window.confirm(confirmText)) {
+  async function performCancel(invoice: BookingInvoice) {
+    if (!token || !maKhachHang || !invoice.maDon) {
       return;
     }
 
+    const isPaidInvoice = invoice.trangThai === 'DA_THANH_TOAN';
     setCancelingInvoiceId(invoice.maDon);
-    setFlashMessage(null);
+    setNoticeDialog(null);
 
     try {
       await apiFetch<BookingInvoice>(
@@ -157,17 +246,21 @@ export default function Profile() {
         { method: 'POST' },
       );
 
-      setFlashMessage({
-        type: 'success',
+      setConfirmDialog(null);
+      setNoticeDialog({
+        title: 'Da cap nhat hoa don',
         text: isPaidInvoice
           ? `Da huy ve cho hoa don ${invoice.maDon}.`
           : `Da huy giu cho cho hoa don ${invoice.maDon}.`,
+        buttonLabel: 'Dong',
       });
       await loadInvoices(maKhachHang, token);
     } catch (cancelError) {
-      setFlashMessage({
-        type: 'error',
+      setConfirmDialog(null);
+      setNoticeDialog({
+        title: 'Khong the huy hoa don',
         text: `Khong the huy hoa don: ${getErrorMessage(cancelError, 'Loi khong xac dinh')}`,
+        buttonLabel: 'Dong',
       });
     } finally {
       setCancelingInvoiceId(null);
@@ -180,6 +273,93 @@ export default function Profile() {
     localStorage.removeItem('maKhachHang');
     sessionStorage.removeItem('utc_redirect');
     navigate('/');
+  }
+
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen pt-24 pb-12 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-8">
+          <aside className="space-y-6">
+            <div className="glass-card p-8 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(217,179,58,0.18),_transparent_60%)] pointer-events-none" />
+              <div className="relative z-10 flex flex-col items-center text-center">
+                <div className="w-24 h-24 rounded-full border-2 border-gold/70 bg-black/60 flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(217,179,58,0.16)]">
+                  <ShieldCheck className="w-11 h-11 text-gold" />
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-gold/80 mb-3">Admin Profile</p>
+                <h1 className="text-3xl font-bold leading-tight">Tai khoan quan tri</h1>
+                <p className="mt-2 text-sm text-white/50">
+                  Profile admin chi hien thi cac loi tat dieu hanh va quan ly he thong, khong trộn chung voi chuc nang cua user.
+                </p>
+                <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-gold/20 bg-gold/10 px-4 py-2 text-xs font-semibold text-gold">
+                  <ShieldCheck className="w-4 h-4" />
+                  ROLE_ADMIN
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-card p-4 space-y-2">
+              {ADMIN_ACTIONS.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <Link
+                    key={action.path}
+                    to={action.path}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white/75 transition-all hover:bg-white/5 hover:text-white"
+                  >
+                    <Icon className="w-4 h-4 text-gold" />
+                    {action.label}
+                  </Link>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-400 transition-all hover:bg-red-500/10"
+              >
+                <LogOut className="w-4 h-4" />
+                Dang xuat
+              </button>
+            </div>
+          </aside>
+
+          <section className="space-y-6">
+            <div className="glass-card p-8">
+              <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-gold/80">Admin shortcuts</p>
+              <h2 className="mt-3 text-3xl font-bold">Chuc nang quan tri</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-white/55">
+                Day la khu chuc nang danh rieng cho admin. Moi loi tat ben duoi se dua ban vao dung man hinh quan tri de thao tac nhanh hon.
+              </p>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                {ADMIN_ACTIONS.map((action) => (
+                  <AdminActionCard key={action.path} action={action} />
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="glass-card p-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/40">Truy cap nhanh</p>
+                <div className="mt-3 text-2xl font-bold text-white">{ADMIN_ACTIONS.length}</div>
+                <p className="mt-2 text-sm text-white/50">Loi tat quan tri san sang trong profile admin.</p>
+              </div>
+              <div className="glass-card p-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/40">Vai tro</p>
+                <div className="mt-3 text-2xl font-bold text-gold">ROLE_ADMIN</div>
+                <p className="mt-2 text-sm text-white/50">Quyen truy cap quan tri duoc lay tu database.</p>
+              </div>
+              <div className="glass-card p-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/40">Hoat dong</p>
+                <div className="mt-3 text-2xl font-bold text-white">San sang</div>
+                <p className="mt-2 text-sm text-white/50">Ban co the vao dashboard, movie, users, showtimes va settings ngay tu day.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -245,11 +425,11 @@ export default function Profile() {
         <section className="space-y-6">
           <div className="flex items-center justify-between gap-4 border-b border-white/5 pb-2">
             <div className="flex gap-8">
-              {TABS.map((tab) => (
+              {['Bookings', 'Settings'].map((tab) => (
                 <button
                   key={tab}
                   type="button"
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => setActiveTab(tab as ProfileTab)}
                   className={cn(
                     'relative pb-4 text-sm font-bold uppercase tracking-[0.3em] transition-colors',
                     activeTab === tab ? 'text-gold' : 'text-white/40 hover:text-white',
@@ -274,24 +454,6 @@ export default function Profile() {
               </button>
             ) : null}
           </div>
-
-          {flashMessage ? (
-            <div
-              className={cn(
-                'flex items-start gap-3 rounded-2xl border px-5 py-4 text-sm',
-                flashMessage.type === 'success'
-                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
-                  : 'border-red-500/30 bg-red-500/10 text-red-200',
-              )}
-            >
-              {flashMessage.type === 'success' ? (
-                <CheckCircle2 className="mt-0.5 w-5 h-5 shrink-0" />
-              ) : (
-                <CircleAlert className="mt-0.5 w-5 h-5 shrink-0" />
-              )}
-              <span>{flashMessage.text}</span>
-            </div>
-          ) : null}
 
           {activeTab === 'Bookings' ? (
             <div className="space-y-6">
@@ -503,7 +665,7 @@ export default function Profile() {
                 <h2 className="mt-3 text-3xl font-bold">Thong tin dang nhap hien tai</h2>
                 <div className="mt-8 grid gap-4 md:grid-cols-2">
                   <SettingCard label="Ma khach hang" value={maKhachHang || 'Chua co'} />
-                  <SettingCard label="Vai tro" value={localStorage.getItem('role') || 'USER'} />
+                  <SettingCard label="Vai tro" value={role || 'ROLE_USER'} />
                   <SettingCard label="Trang thai" value={token ? 'Da dang nhap' : 'Chua dang nhap'} />
                   <SettingCard label="Tong hoa don" value={String(invoices.length)} />
                 </div>
@@ -547,6 +709,37 @@ export default function Profile() {
           )}
         </section>
       </div>
+
+      <CenteredNoticeModal
+        open={Boolean(confirmDialog)}
+        eyebrow="Xac nhan thao tac"
+        title={confirmDialog?.title || ''}
+        message={confirmDialog?.text || ''}
+        icon={<CircleAlert className="h-7 w-7" />}
+        confirmLabel={confirmDialog?.confirmLabel || 'Xac nhan'}
+        cancelLabel="Bo qua"
+        loading={Boolean(confirmDialog?.invoice.maDon && cancelingInvoiceId === confirmDialog.invoice.maDon)}
+        onConfirm={() => {
+          if (confirmDialog) {
+            void performCancel(confirmDialog.invoice);
+          }
+        }}
+        onCancel={() => {
+          if (!cancelingInvoiceId) {
+            setConfirmDialog(null);
+          }
+        }}
+      />
+
+      <CenteredNoticeModal
+        open={Boolean(noticeDialog)}
+        eyebrow="UTC Cinema"
+        title={noticeDialog?.title || ''}
+        message={noticeDialog?.text || ''}
+        icon={<CheckCircle2 className="h-7 w-7" />}
+        confirmLabel={noticeDialog?.buttonLabel || 'Dong'}
+        onConfirm={() => setNoticeDialog(null)}
+      />
     </div>
   );
 }
@@ -568,6 +761,27 @@ function InfoTile({
         <span>{value}</span>
       </div>
     </div>
+  );
+}
+
+function AdminActionCard({ action }: { action: AdminAction }) {
+  const Icon = action.icon;
+
+  return (
+    <Link
+      to={action.path}
+      className="group rounded-3xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-gold/25 hover:bg-gold/[0.06]"
+    >
+      <div className="flex items-start gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-gold/20 bg-gold/10 text-gold transition-all group-hover:bg-gold group-hover:text-black">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-white">{action.label}</h3>
+          <p className="mt-2 text-sm leading-6 text-white/55">{action.description}</p>
+        </div>
+      </div>
+    </Link>
   );
 }
 

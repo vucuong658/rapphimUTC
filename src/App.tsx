@@ -31,7 +31,7 @@ import SeatSelection from './pages/SeatSelectionPage';
 import Checkout from './pages/CheckoutStyledPage';
 import ETicket from './pages/ETicket';
 import Login from './pages/LoginPage';
-import Register from './pages/Register';
+import Register from './pages/RegisterPage';
 import Profile from './pages/Profile';
 import Cinemas from './pages/Cinemas';
 import Experiences from './pages/Experiences';

@@ -1,18 +1,38 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Film, Mail, Lock, Eye, EyeOff, Facebook, Chrome } from 'lucide-react';
+import { Film, User, Lock, Eye, EyeOff, Facebook, Chrome, CheckCircle2, CircleAlert } from 'lucide-react';
 import { API_BASE_URL } from '../constants';
+import CenteredNoticeModal from '../components/CenteredNoticeModal';
+
+type LoginNotice =
+  | {
+      title: string;
+      message: string;
+      icon: 'success' | 'error';
+    }
+  | null;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState<LoginNotice>(null);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const normalizedUsername = username.trim();
+
+    if (!normalizedUsername || !password.trim()) {
+      setError('Vui long nhap day du ten dang nhap va mat khau.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -20,10 +40,10 @@ export default function LoginPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: normalizedUsername, password }),
       });
 
-      const data = await res.json();
+      const data = await parseApiResponse(res);
 
       if (!res.ok) {
         setError(data.message || 'Sai ten dang nhap hoac mat khau');
@@ -48,6 +68,8 @@ export default function LoginPage() {
     } catch (err) {
       console.error(err);
       setError('Khong the ket noi den may chu Backend');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,9 +108,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2 block">Email or Phone Number</label>
+              <label className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2 block">Username</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                 <input
                   type="text"
                   value={username}
@@ -129,25 +151,39 @@ export default function LoginPage() {
               </div>
             ) : null}
 
-            <button type="submit" className="w-full btn-gold py-4 text-lg shadow-2xl shadow-gold/10">
-              Login
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-4 text-lg shadow-2xl transition-all ${
+                loading ? 'bg-gold/50 text-black/50 cursor-not-allowed' : 'btn-gold shadow-gold/10'
+              }`}
+            >
+              {loading ? 'Logging In...' : 'Login'}
             </button>
           </form>
 
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                const res = await fetch(`${API_BASE_URL}/phim`);
-                if (res.ok || res.status) {
-                  alert('Ket noi den Backend thanh cong.');
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const res = await fetch(`${API_BASE_URL}/phim`);
+                  if (res.ok || res.status) {
+                    setNotice({
+                      title: 'Ket noi thanh cong',
+                      message: 'Frontend hien dang ket noi duoc den backend. Ban co the tiep tuc dang nhap hoac dang ky.',
+                      icon: 'success',
+                    });
+                  }
+                } catch (err) {
+                  console.error('Loi goi API:', err);
+                  setNotice({
+                    title: 'Khong ket noi duoc backend',
+                    message: 'Hay kiem tra lai server Spring tren cong 8080 truoc khi dang nhap.',
+                    icon: 'error',
+                  });
                 }
-              } catch (err) {
-                console.error('Loi goi API:', err);
-                alert('Khong the ket noi den may chu Backend.');
-              }
-            }}
-            className="w-full mt-4 bg-green-500/10 text-green-500 border border-green-500/30 py-3 rounded-xl hover:bg-green-500/20 transition-colors font-bold flex items-center justify-center gap-2"
+              }}
+              className="w-full mt-4 bg-green-500/10 text-green-500 border border-green-500/30 py-3 rounded-xl hover:bg-green-500/20 transition-colors font-bold flex items-center justify-center gap-2"
           >
             Kiem tra ket noi API
           </button>
@@ -177,6 +213,30 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      <CenteredNoticeModal
+        open={Boolean(notice)}
+        eyebrow="UTC Cinema"
+        title={notice?.title || ''}
+        message={notice?.message || ''}
+        icon={
+          notice?.icon === 'error'
+            ? <CircleAlert className="h-7 w-7" />
+            : <CheckCircle2 className="h-7 w-7" />
+        }
+        confirmLabel="Dong"
+        onConfirm={() => setNotice(null)}
+      />
     </div>
   );
+}
+
+async function parseApiResponse(response: Response): Promise<Record<string, any>> {
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return await response.json();
+  }
+
+  const text = await response.text();
+  return { message: text };
 }
